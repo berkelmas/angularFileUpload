@@ -3,8 +3,6 @@ import { AngularFireStorage } from '@angular/fire/storage';
 import { AngularFireAuth } from '@angular/fire/auth';
 import { UserService } from './user.service';
 
-import sha256 from 'sha256';
-
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -12,6 +10,7 @@ import sha256 from 'sha256';
 })
 export class AppComponent implements OnInit {
   uid: string;
+  pictures: any = [];
 
   constructor(
     private fireStorage: AngularFireStorage,
@@ -21,51 +20,37 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.fireAuth.authState.subscribe(res => this.userService.user_uid.next(res.uid));
-    this.userService.user_uid.subscribe(res => this.uid = res);
+    this.userService.user_uid.subscribe(res => {
+      this.uid = res;
+
+      this.userService.getUserPhotos(this.uid).subscribe(res => {
+        this.pictures = [];
+        console.log('subscribed...');
+        res.map(item => {
+
+          const filePath = item.payload.doc.data()['filePath']
+
+          this.userService.getUserPhotosDownloadLinks(filePath).subscribe(res => {
+            this.pictures.push(res)
+          })
+
+        })
+      });
+    });
+
+
 
   }
 
   uploadFile(event) {
-
-    if (event.target.files[0]) {
-      const file = event.target.files[0];
-      const fileName = event.target.files[0].name
-      const uid = this.uid;
-      const filePath = `${this.uid}/${event.target.files[0].name}`
-
-      this.uploadOrChangeName(filePath, file, uid, fileName);
-    }
-
-
+    this.userService.uploadFileToStorage(event, this.uid)
   }
-
-  uploadOrChangeName(filePath, file, uid, filename) {
-    const insideFunction = (filePath, file, uid, filename) => {
-
-      this.fireStorage.ref(filePath).getDownloadURL().toPromise()
-        .then(res => {
-          const newFileName = sha256(filename);
-          const newFilePath = `${uid}/${newFileName}.png`
-          insideFunction(newFilePath, file, uid, newFileName);
-        })
-        .catch(err => {
-          const ref = this.fireStorage.ref(filePath);
-          ref.put(file)
-            .then(res => console.log(res))
-            .catch(err => console.log(err));
-        })
-    }
-    insideFunction(filePath, file, uid, filename);
-  }
-
 
   handleLogin() {
     this.userService.getUser('deneme@gmail.com', '123456')
   }
 
-  getFiles() {
-    this.fireStorage.ref(`${this.uid}/profilesds.jpeg`).getDownloadURL().toPromise()
-      .then(res => console.log(res))
-      .catch(err => console.log(err));
+  deleteFile(filePath) {
+    this.userService.deleteUserPhoto(filePath);
   }
 }

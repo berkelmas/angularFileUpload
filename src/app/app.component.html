@@ -1,4 +1,16 @@
 <input type="file" (change)="uploadFile($event)">
 
 <button (click)="handleLogin()">Giriş Yap</button>
-<button (click)="getFiles()">Get File Names</button>
+<button (click)="getFiles(uid)">Get File Names</button>
+
+  <p>{{ pictures | json }}</p>
+
+<br>
+<div>
+  <h4>Kullanici Resimleri</h4>
+  <ul>
+    <li *ngFor="let picture of pictures">
+      <img [src]="picture" (click)="deleteFile(picture)" alt="">
+    </li>
+  </ul>
+</div>
