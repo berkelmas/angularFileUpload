@@ -9,7 +9,7 @@ import { UserService } from './user.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  uid: string;
+  uid: string = null;
   pictures: any = [];
 
   constructor(
@@ -22,10 +22,8 @@ export class AppComponent implements OnInit {
     this.fireAuth.authState.subscribe(res => this.userService.user_uid.next(res.uid));
     this.userService.user_uid.subscribe(res => {
       this.uid = res;
-
       this.userService.getUserPhotos(this.uid).subscribe(res => {
         this.pictures = [];
-        console.log('subscribed...');
         res.map(item => {
 
           const filePath = item.payload.doc.data()['filePath']

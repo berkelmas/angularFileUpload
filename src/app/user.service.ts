@@ -47,10 +47,13 @@ export class UserService {
           insideFunction(newFilePath, file, uid, newFileName);
         })
         .catch(err => {
-          this.fireStore.collection('users').add({uid: uid, filePath: filePath});
           const ref = this.fireStorage.ref(filePath);
           ref.put(file)
-            .then(res => console.log(res))
+            .then(res => {
+              this.fireStore.collection('users').add({uid: uid, filePath: filePath})
+                .then(res => console.log('veritabanina kayit basarili'))
+                .catch(err => err);
+            })
             .catch(err => err);
         })
     }
